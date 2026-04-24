@@ -1,0 +1,68 @@
+### 2. Secured and Monitored Web Infrastructure Design
+
++-----------------------+
+|      User Browser     |
+| (HTTPS - Port 443)    |
++-----------+-----------+
+            |
+            v
++-----------+-----------+
+|        DNS            |
++-----------+-----------+
+            |
+            v
++-----------+-----------------------+
+|    Firewall (LB level)            |
++-----------+-----------------------+
+|    Load Balancer (HAproxy)        |
+|  (SSL Termination - HTTPS)        |
+|  (Monitoring Client)              |
++-----------+-----------+-----------+
+            |           |
+      +-----+           +-----+
+      v                       v
++-----------+-----------+   +-----------+-----------+
+|    Firewall (S1)      |   |    Firewall (S2)      |
++-----------+-----------+   +-----------+-----------+
+|      Web Server 1     |   |      Web Server 2     |
+|   (Monitoring Client) |   |   (Monitoring Client) |
++-----------+-----------+   +-----------+-----------+
+|   App Server 1        |   |   App Server 2        |
++-----------+-----------+   +-----------+-----------+
+            |                       |
+            +-----------+-----------+
+                        v
++-----------------------+---------------------------+
+|              Database Cluster                     |
+|  +--------------------+      +-----------------+  |
+|  |  Primary (Master)  | ---> | Replica (Slave) |  |
+|  +--------------------+      +-----------------+  |
++---------------------------------------------------+
+
+### Infrastructure Explanation
+
+1. Why additional elements?
+- Firewalls: Added to protect the servers from unauthorized access and malicious traffic by filtering network ports.
+- SSL Certificate (HTTPS): Added to encrypt data transmitted between the user and the server, ensuring privacy and integrity.
+- Monitoring Clients: Added to collect metrics (CPU, RAM, logs, QPS) and ensure the health of the infrastructure.
+
+2. What are firewalls for?
+Firewalls act as a barrier between a trusted network and an untrusted network. They allow or block traffic based on a set of security rules (e.g., only allowing ports 80, 443, and 22).
+
+3. Why is the traffic served over HTTPS?
+HTTPS (HTTP over SSL/TLS) encrypts the communication so that sensitive data (like passwords) cannot be intercepted by attackers using "Man-in-the-Middle" (MITM) attacks.
+
+4. What monitoring is used for?
+Monitoring is used to track system performance, detect failures, and visualize traffic patterns. It helps in proactive troubleshooting.
+
+5. How the monitoring tool is collecting data?
+The tool uses agents (clients) installed on each server that push local metrics (logs, resource usage) to a central monitoring server or service like Sumo Logic or Prometheus.
+
+6. Monitoring Web Server QPS (Queries Per Second):
+To monitor QPS, we analyze the web server access logs (Nginx logs) to count the number of HTTP requests received every second.
+
+### Issues with this Infrastructure
+
+- SSL Termination at the Load Balancer: While it saves resources on back-end servers, the traffic between the Load Balancer and the Web Servers is unencrypted (HTTP), which could be a risk in a compromised internal network.
+- Single Writable Database: Having only one MySQL server capable of accepting writes is an issue because if the Primary node fails, the application cannot perform write operations, leading to a partial outage.
+- Identical Server Components: Running all components (Database, Web Server, App Server) on the same machine (even with two servers) can lead to resource contention; if the DB consumes all CPU, the Web Server will also lag.

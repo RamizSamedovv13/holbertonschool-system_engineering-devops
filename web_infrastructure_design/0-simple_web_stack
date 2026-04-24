@@ -1,2 +1,55 @@
- https://imgur.com/gallery/5l6CBQt
- 
++-----------------------+
+|      User Browser     |
+|  (www.foobar.com)     |
++-----------+-----------+
+            |
+            v
++-----------+-----------+
+|        DNS            |
+| (A Record: 8.8.8.8)   |
++-----------+-----------+
+            |
+            v
++-----------+---------------------------------------+
+|               Server (IP: 8.8.8.8)                |
+|                                                   |
+|  +----------------+      +--------------------+   |
+|  |   Web Server   | ---> |  Application       |   |
+|  |    (Nginx)     |      |     Server         |   |
+|  +-------+--------+      +---------+----------+   |
+|          |                         |              |
+|          |                         v              |
+|          |               +---------+----------+   |
+|          +-------------> |     Database       |   |
+|                          |     (MySQL)        |   |
+|                          +--------------------+   |
++---------------------------------------------------+
+
+### Infrastructure Explanation
+
+1. What is a server?
+A server is a physical or virtual machine that provides resources, data, or services to other computers (clients) over a network.
+
+2. What is the role of the domain name?
+The domain name (foobar.com) provides a human-readable address for a website, making it easier for users to remember instead of memorizing the numeric IP address (8.8.8.8).
+
+3. What type of DNS record 'www' is in 'www.foobar.com'?
+In this setup, 'www' is an 'A record' that points directly to the server's IP address (8.8.8.8).
+
+4. What is the role of the web server (Nginx)?
+The web server handles incoming HTTP requests from users, serves static content (like HTML/CSS/Images), and forwards dynamic requests to the application server.
+
+5. What is the role of the application server?
+The application server executes the actual program logic (codebase), processes data, and interacts with the database to generate dynamic content.
+
+6. What is the role of the database (MySQL)?
+The database is used for structured data storage, allowing the application to save, retrieve, and manage information.
+
+7. What is the server using to communicate with the user's computer?
+The server uses the HTTP (Hypertext Transfer Protocol) over TCP/IP to communicate with the user requesting the website.
+
+### Issues with this Infrastructure
+
+- SPOF (Single Point of Failure): There is only one server. If the server hardware, Nginx, or MySQL fails, the entire website goes down.
+- Downtime during maintenance: Any updates to the application or server maintenance require the services to be stopped, causing the site to be unreachable.
+- Scalability: A single server cannot handle a sudden increase in traffic because it has limited CPU, RAM, and storage resources.

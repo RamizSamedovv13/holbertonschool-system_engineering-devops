@@ -1,0 +1,56 @@
+### 3. Scale Up Infrastructure Design
+
++-----------------------+
+|      User Browser     |
++-----------+-----------+
+            |
+            v
++-----------+-----------+
+|        DNS            |
++-----------+-----------+
+            |
+            v
++-----------+---------------------------+
+|   Load Balancer Cluster (HAproxy)     |
+|  (Active-Passive Configuration)       |
++-----------+-----------+---------------+
+            |           |
+      +-----+           +-----+
+      v                       v
++-----------+           +-----------+
+| Web Server|           | Web Server|
+|  (Nginx)  |           |  (Nginx)  |
++-----------+           +-----------+
+      |                       |
+      +-----------+-----------+
+                  v
++-----------+-----------+-----------+
+|       App Server Cluster          |
+|  +----------+       +----------+  |
+|  | App Srv 1|       | App Srv 2|  |
+|  +----------+       +----------+  |
++-----------+-----------+-----------+
+                  |
+                  v
++-----------+-----------+-----------+
+|       Database Cluster            |
+|  +----------+       +----------+  |
+|  | Primary  | ----> | Replica  |  |
+|  +----------+       +----------+  |
++-----------------------------------+
+
+### Infrastructure Explanation
+
+1. Why splitting components into their own servers?
+Each service (Web, App, Database) has different resource needs. By splitting them, we prevent resource contention. For example, a heavy database query won't slow down the Web Server's ability to serve static files. It also allows us to scale each layer independently.
+
+2. Why adding another Load Balancer?
+Adding a second load balancer in a cluster (Active-Passive) eliminates the Single Point of Failure (SPOF) at the entry point. If the main load balancer fails, the second one takes over immediately.
+
+3. Why adding more servers?
+Increasing the number of servers at the web and application levels allows the system to handle more concurrent users (horizontal scaling) and provides redundancy.
+
+### Component Roles:
+- Web Servers (Nginx): Only responsible for handling HTTP requests and serving static content.
+- Application Servers: Only responsible for executing the business logic and processing data.
+- Database Cluster: Dedicated only to data storage and management.
